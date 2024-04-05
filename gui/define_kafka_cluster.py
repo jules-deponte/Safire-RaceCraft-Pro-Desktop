@@ -17,6 +17,7 @@ import time
 import socket
 import pandas as pd
 import sqlite3
+import requests
 
 from ctkspinbox import Spinbox
 from enter_ips import IPsWindow
@@ -46,16 +47,18 @@ connection.commit()
 
 # The CTkTopLevel class is one which creates a new window in the same application.
 class DefineKafkaCluster(CTkToplevel):
-    def __init__(self, master, topic_name, access_token):
+    def __init__(self, master, topic_name, access_token, user_id):
         super().__init__(master)
         
         self.title("Start Kafka Cluster")
         
         self.topic_name = topic_name
+        self.user_id = user_id
+        self.access_token = access_token
+        
         self.geom_size = "440x460"
         self.geometry(self.geom_size)
         self.resizable(0, 0)
-        self.access_token = access_token
         
         print(self.access_token)
         
@@ -315,11 +318,32 @@ class DefineKafkaCluster(CTkToplevel):
         skc.start_kafka_cluster(df_ips=df_ips)
         
         
-        
         brokers = list(df_ips[df_ips['type']=='1']['broker_ip'])
         print(brokers)
         rcp_kp = RcpKafkaProducer(brokers=brokers, topic_name=self.topic_name)
 
+        url = "http://127.0.0.4:5000/start_session"
+
+        data = {
+            "brokers": brokers, 
+            "topic_name": self.topic_name,
+            "user_id": self.user_id,
+            "token": f"{self.access_token}"
+        }
+        
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+        
+        print(data)
+        
+        try:
+            response = requests.post(
+                url=url,
+                json=data,
+                headers=headers
+            )
+        except Exception as e:
+            print(e)
+        
         t0 = Thread(target=rcp_kp.run_producer, daemon=True)
         t0.start()
                 

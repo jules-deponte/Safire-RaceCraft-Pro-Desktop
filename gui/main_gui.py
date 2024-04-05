@@ -66,7 +66,7 @@ class App(ctk.CTk):
         self.topic_name = self.ent_name.get()
         self.password = self.ent_password.get()
         
-        top = DefineKafkaCluster(self, topic_name=self.topic_name, access_token=self.token)
+        top = DefineKafkaCluster(self, topic_name=self.topic_name, access_token=self.token, user_id=self.user_id)
         top.protocol("WM_DELETE_WINDOW", self.on_top_window_close)
         top.deiconify() 
 
@@ -92,7 +92,8 @@ class App(ctk.CTk):
 
         try:
             # print(r.json())
-            self.token = r.json()['access_token']
+            self.token   = r.json()['access_token']
+            self.user_id = r.json()['user_id']
             
             self.open_window()
         except KeyError:

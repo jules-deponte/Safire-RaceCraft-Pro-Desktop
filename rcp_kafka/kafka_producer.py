@@ -25,13 +25,18 @@ class RcpKafkaProducer:
 
     def run_producer(self):
         
-        # Connect to the web socket to which this function will be writting.
-        self.sock = socket.socket(
-            socket.AF_INET, # Internet
-            socket.SOCK_DGRAM
-        ) # UDP
+        try:
+            # Connect to the web socket to which this function will be writting.
+            self.sock = socket.socket(
+                socket.AF_INET, # Internet
+                socket.SOCK_DGRAM
+            ) # UDP
 
-        self.sock.bind((self.UDP_IP, self.UDP_PORT))
+            self.sock.bind((self.UDP_IP, self.UDP_PORT))
+        except Exception as e:
+            print(e)
+            print("Could not connect to F1 socket. Creating Kafka cluster anyway.")
+            print("\n\n\n\===============================================\n\n\n")
         
         for i in range(3):
             try:
