@@ -70,7 +70,7 @@ class StartKafkaCluster():
         print(f'\nCreating broker cmd: \n{cmd}')
         os.system(f'start cmd.exe /k {cmd}')
 
-        cmd = rf'"C:\kafka\bin\windows\kafka-topics.bat --create --bootstrap-server {ips} --topic {self.topic_name} --replication-factor 1 --partitions 2"'
+        cmd = rf'"C:\kafka\bin\windows\kafka-topics.bat --create --bootstrap-server {ips} --topic {self.topic_name} --replication-factor 1 --partitions 1"'
         print(f'\nCreating topic cmd: \n{cmd}')
         os.system(f'start cmd.exe /k {cmd}')
 
