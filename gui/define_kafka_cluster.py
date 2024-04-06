@@ -61,6 +61,7 @@ class DefineKafkaCluster(CTkToplevel):
         self.geometry(self.geom_size)
         self.resizable(0, 0)
         self.num_brokers = 1
+        self.session = "start"
         
         print(self.access_token)
         
@@ -191,6 +192,7 @@ class DefineKafkaCluster(CTkToplevel):
             )
             self.btn_create_cluster.place(relx=0.5, rely=0.9, anchor=CENTER)
             self.btn_create_cluster.configure(state='disabled')
+            
 
 
         elif self.use_saved.get() == True:
@@ -331,55 +333,68 @@ class DefineKafkaCluster(CTkToplevel):
         ips_window.grab_set()
         
     def start_kafka_cluster(self):
-        skc = StartKafkaCluster(
-            connection=connection,
-            topic_name=self.topic_name,
-            current_ip=self.current_ip,
-            is_zookeeper=self.is_zookeeper.get(),
-            num_brokers=self.num_brokers
-        )
-        df_ips = self.get_and_display_ips()[1]
-        skc.start_kafka_cluster(df_ips=df_ips)
         
-        
-        brokers = list(df_ips[df_ips['type']=='1']['broker_ip'])
-        print(brokers)
-        rcp_kp = RcpKafkaProducer(brokers=brokers, topic_name=self.topic_name)
-
-        url = "http://192.168.242.13:5000/start_session"
-
-        data = {
-            "brokers": brokers, 
-            "topic_name": self.topic_name,
-            "user_id": self.user_id,
-            "token": f"{self.access_token}"
-        }
-        
-        headers = {"Authorization": f"Bearer {self.access_token}"}
-        
-        print(data)
-        
-        try:
-            response = requests.post(
-                url=url,
-                json=data,
-                headers=headers
-            )
-        except Exception as e:
-            print(e)
-        
-        t0 = Thread(target=rcp_kp.run_producer, daemon=True)
-        t0.start()
-        
-        # time.sleep(5)
-        
-        # url = f"http://127.0.0.4:5005/susp_loads/{user_id}"
-
-        # # response = requests.get(url=url, headers=headers)
-        # webbrowser.open(url)
-        
-        # url = f"http://127.0.0.4:5005/driver_inputs/{user_id}"
-
-        # # response = requests.get(url=url, headers=headers)
-        # webbrowser.open(url)
+        if self.session == "start":
+            print(f"self.session: {self.session}")
+            try:
+                self.btn_create_cluster.configure(text="End Session")
+            except AttributeError as e:
+                pass
+            
+            self.btn_start_server.configure(text="End Session")
                 
+            skc = StartKafkaCluster(
+                connection=connection,
+                topic_name=self.topic_name,
+                current_ip=self.current_ip,
+                is_zookeeper=self.is_zookeeper.get(),
+                num_brokers=self.num_brokers
+            )
+            df_ips = self.get_and_display_ips()[1]
+            skc.start_kafka_cluster(df_ips=df_ips)
+            
+            
+            brokers = list(df_ips[df_ips['type']=='1']['broker_ip'])
+            print(brokers)
+            rcp_kp = RcpKafkaProducer(brokers=brokers, topic_name=self.topic_name)
+
+            url = "http://192.168.242.13:5000/start_session"
+
+            data = {
+                "brokers": brokers, 
+                "topic_name": self.topic_name,
+                "user_id": self.user_id,
+                "token": f"{self.access_token}"
+            }
+            
+            headers = {"Authorization": f"Bearer {self.access_token}"}
+            
+            print(data)
+            
+            try:
+                response = requests.post(
+                    url=url,
+                    json=data,
+                    headers=headers,
+                    timeout=3
+                )
+            except Exception as e:
+                print(e)
+            
+            t0 = Thread(target=rcp_kp.run_producer, daemon=True)
+            t0.start()
+            
+
+            self.session = "end"
+            
+        else:
+            print(f"self.session: {self.session}")
+            try:
+                self.btn_create_cluster.configure(text="Start Session")
+            except AttributeError as e:
+                pass
+            self.btn_start_server.configure(text="Start Session")
+            # Place Request to end session here.
+            self.session = "start"
+            
+        
