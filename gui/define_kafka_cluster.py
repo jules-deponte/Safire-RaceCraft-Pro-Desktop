@@ -18,6 +18,7 @@ import socket
 import pandas as pd
 import sqlite3
 import requests
+import webbrowser
 
 from ctkspinbox import Spinbox
 from enter_ips import IPsWindow
@@ -50,7 +51,7 @@ class DefineKafkaCluster(CTkToplevel):
     def __init__(self, master, topic_name, access_token, user_id):
         super().__init__(master)
         
-        self.title("Start Kafka Cluster")
+        self.title("Start Session")
         
         self.topic_name = topic_name
         self.user_id = user_id
@@ -59,6 +60,7 @@ class DefineKafkaCluster(CTkToplevel):
         self.geom_size = "440x460"
         self.geometry(self.geom_size)
         self.resizable(0, 0)
+        self.num_brokers = 1
         
         print(self.access_token)
         
@@ -107,7 +109,7 @@ class DefineKafkaCluster(CTkToplevel):
 
         self.btn_start_server = CTkButton(
             master=self.fmr_w2_main,
-            text="Start Kafka Cluster",
+            text="Start Session",
             command=self.start_kafka_cluster
         )
         self.btn_start_server.place(relx=0.5, rely=0.8, anchor=CENTER)
@@ -139,7 +141,7 @@ class DefineKafkaCluster(CTkToplevel):
                 step_size=1, 
                 min_value=1,
                 max_value=5,
-                command=self.check_number_brokers)
+                command=lambda: [self.check_number_brokers(), self.check_check_boxes()])
             self.spb_num_brokers_num_brokers.place(relx=0.5, y=60, anchor=CENTER)
             self.spb_num_brokers_num_brokers.set(1)
             
@@ -151,10 +153,10 @@ class DefineKafkaCluster(CTkToplevel):
                 text="Is this machine acting as the zookeeper?",
                 variable=self.is_zookeeper,
                 onvalue=True,
-                offvalue=False
+                offvalue=False,
+                command=self.check_check_boxes
             )
             self.chk_is_zookeeper.place(relx=0.5, y=100, anchor=CENTER)
-            self.chk_is_zookeeper.configure(state='disabled')
             
             # =======================   Is Broker 0 check box  =====================
             self.chk_is_broker_0 = CTkCheckBox(
@@ -162,10 +164,10 @@ class DefineKafkaCluster(CTkToplevel):
                 text="Is this machine acting as broker ID 0?      ",
                 variable=self.is_broker_0,
                 onvalue=True,
-                offvalue=False
+                offvalue=False,
+                command=self.check_check_boxes
             )
             self.chk_is_broker_0.place(relx=0.5, y=140, anchor=CENTER)
-            self.chk_is_broker_0.configure(state='disabled')
             
             
             # ================================   ENTER IPs Button   ======================
@@ -184,7 +186,7 @@ class DefineKafkaCluster(CTkToplevel):
             # ================================  START KAFKA CLUSTER Button   ========================
             self.btn_create_cluster = CTkButton(
                 master=self.frm_custom_ips, 
-                text="Start Kafka Cluster",
+                text="Start Session",
                 command=self.start_kafka_cluster
             )
             self.btn_create_cluster.place(relx=0.5, rely=0.9, anchor=CENTER)
@@ -213,17 +215,24 @@ class DefineKafkaCluster(CTkToplevel):
     
         self.widgets_custom_ips()
 
+    def check_check_boxes(self):
+        if (self.is_zookeeper.get() == True) and \
+        (self.is_broker_0.get() == True) and \
+        (self.spb_num_brokers_num_brokers.get() == 1):
+            self.btn_enter_ips.configure(text='Save current IPs')
+        else:
+            self.btn_enter_ips.configure(text='Enter IP values')
 
     def check_number_brokers(self):
         self.btn_create_cluster.configure(state='disabled')
         self.lbl_ips_display.configure(text='Kakfa Cluster IPs:')
-        num_brokers = self.spb_num_brokers_num_brokers.get() 
-        if num_brokers == 1:
+        self.num_brokers = self.spb_num_brokers_num_brokers.get() 
+        
+        
+        
+        if self.num_brokers == 1:
             self.chk_is_zookeeper.select()
-            self.chk_is_zookeeper.configure(state='disabled')
             self.chk_is_broker_0.select()
-            self.chk_is_broker_0.configure(state='disabled')
-            self.btn_enter_ips.configure(text='Save current IPs')
             self.zookeeper_ip = self.current_ip
             self.broker_0_ip = self.current_ip
         else:
@@ -233,7 +242,7 @@ class DefineKafkaCluster(CTkToplevel):
 
 
     def get_num_ips_required(self):
-        # global display_ips
+        
         correction_factor = 0
         
         enter_ips_params = {
@@ -267,6 +276,8 @@ class DefineKafkaCluster(CTkToplevel):
             correction_factor = 1
             
             
+        print(f"is_zookeeper: {self.is_zookeeper.get()}")
+        print(f"is_broker_0: {self.is_broker_0.get()}")
             
         for i in range(0, self.spb_num_brokers_num_brokers.get() - correction_factor):
             enter_ips_params["type"].append("1")
@@ -276,10 +287,22 @@ class DefineKafkaCluster(CTkToplevel):
         print(f"enter_ips_params: {enter_ips_params}")
         df_ips = pd.DataFrame(self.ips)
         # print(df_ips)
-        df_ips.to_sql('ips', con=connection, if_exists='replace')
+        print(f"len(df_ips):{len(df_ips)}")
+        print(df_ips)
         
-        if self.spb_num_brokers_num_brokers.get() > 1:
+        if len(df_ips) == 0:
+            connection.execute("DELETE FROM ips")
+            connection.commit()
+        else:
+            df_ips.to_sql('ips', con=connection, if_exists='replace')
+            connection.commit()
+        
+        
+
+        
+        if (self.spb_num_brokers_num_brokers.get() > 1) or (not self.is_broker_0.get()):
             self.enter_ips(params=enter_ips_params)
+            print("enter IPs")
         else:
             
             display_ips = self.get_and_display_ips()[0]
@@ -312,7 +335,8 @@ class DefineKafkaCluster(CTkToplevel):
             connection=connection,
             topic_name=self.topic_name,
             current_ip=self.current_ip,
-            is_zookeeper=self.is_zookeeper
+            is_zookeeper=self.is_zookeeper.get(),
+            num_brokers=self.num_brokers
         )
         df_ips = self.get_and_display_ips()[1]
         skc.start_kafka_cluster(df_ips=df_ips)
@@ -322,7 +346,7 @@ class DefineKafkaCluster(CTkToplevel):
         print(brokers)
         rcp_kp = RcpKafkaProducer(brokers=brokers, topic_name=self.topic_name)
 
-        url = "http://127.0.0.4:5000/start_session"
+        url = "http://192.168.242.13:5000/start_session"
 
         data = {
             "brokers": brokers, 
@@ -346,4 +370,16 @@ class DefineKafkaCluster(CTkToplevel):
         
         t0 = Thread(target=rcp_kp.run_producer, daemon=True)
         t0.start()
+        
+        # time.sleep(5)
+        
+        # url = f"http://127.0.0.4:5005/susp_loads/{user_id}"
+
+        # # response = requests.get(url=url, headers=headers)
+        # webbrowser.open(url)
+        
+        # url = f"http://127.0.0.4:5005/driver_inputs/{user_id}"
+
+        # # response = requests.get(url=url, headers=headers)
+        # webbrowser.open(url)
                 

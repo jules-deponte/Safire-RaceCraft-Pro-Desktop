@@ -88,11 +88,12 @@ class App(ctk.CTk):
         
         try:
             r = requests.post(
-                url="http://127.0.0.4:5000/login", 
+                url="http://192.168.242.13:5000/login", 
                 json={
                     "username": self.topic_name,
                     "password": self.password
-                }
+                },
+                timeout=3
             )
             try:
                 # print(r.json())
@@ -107,7 +108,6 @@ class App(ctk.CTk):
             print("Logging in without connecting to the web server.")
 
         self.open_window()
-
 
 if __name__ == "__main__":
     main = App()
