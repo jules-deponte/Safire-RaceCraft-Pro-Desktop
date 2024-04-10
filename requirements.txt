@@ -1,0 +1,17 @@
+flask
+flask-smorest
+python-dotenv
+flask-sqlalchemy
+sqlalchemy
+Flask-JWT-Extended
+python-dotenv
+flask-migrate
+gunicorn
+psycopg2
+requests
+flask-socketio
+numpy
+customtkinter
+pygetwindow
+pyautogui
+kafka-python==2.0.2
