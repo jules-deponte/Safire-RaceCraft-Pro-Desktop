@@ -358,16 +358,17 @@ class DefineKafkaCluster(CTkToplevel):
             print(brokers)
             rcp_kp = RcpKafkaProducer(brokers=brokers, topic_name=self.topic_name)
 
-            url = "http://192.168.242.13:5000/start_session"
+
+            url = "http://192.168.68.72:5000/start_session"
 
             data = {
                 "brokers": brokers, 
                 "topic_name": self.topic_name,
-                "user_id": self.user_id,
-                "token": f"{self.access_token}"
+                "user_id": "1",
+                "token": f"asdf"
             }
             
-            headers = {"Authorization": f"Bearer {self.access_token}"}
+            # headers = {"Authorization": f"Bearer {self.access_token}"}
             
             print(data)
             
@@ -375,7 +376,7 @@ class DefineKafkaCluster(CTkToplevel):
                 response = requests.post(
                     url=url,
                     json=data,
-                    headers=headers,
+                    # headers=headers,
                     timeout=3
                 )
             except Exception as e:

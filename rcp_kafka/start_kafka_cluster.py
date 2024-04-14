@@ -89,9 +89,9 @@ class StartKafkaCluster():
                 # print(f'\nStarting producer cmd: \n{cmd}')
                 # os.system(f'start cmd.exe /k {cmd}')
 
-                # cmd = rf'"C:\kafka\bin\windows\kafka-console-consumer.bat --topic {self.topic_name} --bootstrap-server {ips} --from-beginning"'
-                # print(f'\nStarting consumer cmd: \n{cmd}')
-                # os.system(f'start cmd.exe /k {cmd}')
+                cmd = rf'"C:\kafka\bin\windows\kafka-console-consumer.bat --topic {self.topic_name} --bootstrap-server {ips} --from-beginning"'
+                print(f'\nStarting consumer cmd: \n{cmd}')
+                os.system(f'start cmd.exe /k {cmd}')
             
             except IndexError as e:
                 print(e)

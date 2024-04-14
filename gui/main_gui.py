@@ -88,26 +88,26 @@ class App(ctk.CTk):
         
         try:
             r = requests.post(
-                url="http://192.168.242.13:5000/login", 
+                url="http://192.168.68.72:5000/login", 
                 json={
                     "username": self.topic_name,
                     "password": self.password
                 },
                 timeout=3
             )
-            try:
-                # print(r.json())
-                self.token   = r.json()['access_token']
-                self.user_id = r.json()['user_id']
-                
-            except KeyError:
-                self.lbl_credentials.configure(text="Incorrect credentials. Please try again.", text_color="red")
-                print("Incorecct credentials")
         except Exception as e:
             print(e)
             print("Logging in without connecting to the web server.")
+        try:
+            # print(r.json())
+            # self.token   = r.json()['access_token']
+            # self.user_id = r.json()['user_id']
+            self.open_window()
+            
+        except KeyError:
+            self.lbl_credentials.configure(text="Incorrect credentials. Please try again.", text_color="red")
+            print("Incorect credentials")
 
-        self.open_window()
 
 if __name__ == "__main__":
     main = App()
