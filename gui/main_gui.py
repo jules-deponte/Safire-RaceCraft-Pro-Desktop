@@ -9,6 +9,10 @@ import requests
 
 from define_kafka_cluster import DefineKafkaCluster
 
+from utils import PasswordHash
+
+
+
 
 
 # This file creates the login window for the Safire RaceCraft Pro desktop client.
@@ -83,30 +87,30 @@ class App(ctk.CTk):
         self.topic_name = self.ent_name.get()
         self.password = self.ent_password.get()
         
+        
+        pwh = PasswordHash()
+        password = pwh.password_hash(self.password)
+        
         self.token   = None
         self.user_id = None
         
-        try:
-            r = requests.post(
-                url="http://192.168.68.72:5000/login", 
-                json={
-                    "username": self.topic_name,
-                    "password": self.password
-                },
-                timeout=3
-            )
-        except Exception as e:
-            print(e)
-            print("Logging in without connecting to the web server.")
-        try:
-            # print(r.json())
-            # self.token   = r.json()['access_token']
-            # self.user_id = r.json()['user_id']
+        
+        r = requests.post(
+            url="http://127.0.0.1:5000/login_from_desktop", 
+            json={
+                "username": self.topic_name,
+                "password": password
+            },
+            timeout=3
+        )
+        
+            
+        if r.json()['code'] == 200:
             self.open_window()
             
-        except KeyError:
+        else:
             self.lbl_credentials.configure(text="Incorrect credentials. Please try again.", text_color="red")
-            print("Incorect credentials")
+            
 
 
 if __name__ == "__main__":

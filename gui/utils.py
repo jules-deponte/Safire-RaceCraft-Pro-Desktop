@@ -1,4 +1,5 @@
 import pandas as pd
+import hashlib
 
 
 def create_df_ips(connection):
@@ -22,3 +23,28 @@ def create_df_ips(connection):
     
     return display_ips, df_ips
     
+
+
+class PasswordHash:
+    
+    def password_hash(self, password):
+        # Hash the user password
+        password_obj = hashlib.sha512()
+        
+        password_obj.update(password.encode('utf-8'))
+        password = password_obj.hexdigest()
+        
+        # Hash the hash of the previous password.
+        password_obj.update(password.encode('utf-8'))
+        password = password_obj.hexdigest()
+        
+        return password
+    
+    def verify(self, db_pwd_hash, password):
+        
+        password = self.password_hash(password)
+        
+        if db_pwd_hash == password:
+            return True
+        else:
+            return False
