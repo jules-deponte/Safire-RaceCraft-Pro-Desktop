@@ -96,7 +96,7 @@ class App(ctk.CTk):
         
         
         r = requests.post(
-            url="http://127.0.0.1:5000/login_from_desktop", 
+            url="http://127.0.0.1:5000/login_kafka_client", 
             json={
                 "username": self.topic_name,
                 "password": password

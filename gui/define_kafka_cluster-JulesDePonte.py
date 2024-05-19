@@ -359,13 +359,13 @@ class DefineKafkaCluster(CTkToplevel):
             rcp_kp = RcpKafkaProducer(brokers=brokers, topic_name=self.topic_name)
 
 
-            url = "http://192.168.68.68:5000/start_session"
+            url = "http://127.0.0.1:5000/start_session"
 
             data = {
                 "brokers": brokers, 
-                # "topic_name": self.topic_name,
-                # "user_id": "1",
-                # "token": f"asdf"
+                "topic_name": self.topic_name,
+                "user_id": "1",
+                "token": f"asdf"
             }
             
             # headers = {"Authorization": f"Bearer {self.access_token}"}
