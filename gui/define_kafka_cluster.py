@@ -33,7 +33,7 @@ from rcp_kafka.start_kafka_cluster import StartKafkaCluster
 
 # This file creates a customtkinter window which allows the user to configure the Kafka cluster.
 # It creates a connection to a SQLite database, which will contain the values of the IP addresses
-# for the zookeeper and borkers.
+# for the zookeeper and brokers.
 
 # Create a connection to the ips_db database in the root folder, and create the ips table.
 connection = sqlite3.connect(r'..\ips_db.db')
@@ -342,24 +342,17 @@ class DefineKafkaCluster(CTkToplevel):
                 pass
             
             self.btn_start_server.configure(text="End Session")
-                
-            skc = StartKafkaCluster(
-                connection=connection,
-                topic_name=self.topic_name,
-                current_ip=self.current_ip,
-                is_zookeeper=self.is_zookeeper.get(),
-                num_brokers=self.num_brokers
-            )
+
+
             df_ips = self.get_and_display_ips()[1]
-            skc.start_kafka_cluster(df_ips=df_ips)
-            
-            
             brokers = list(df_ips[df_ips['type']=='1']['broker_ip'])
             print(brokers)
-            rcp_kp = RcpKafkaProducer(brokers=brokers, topic_name=self.topic_name)
+            
+            # Do not start the listener to the F1 game.
+            # rcp_kp = RcpKafkaProducer(brokers=brokers, topic_name=self.topic_name)
 
 
-            url = "http://192.168.68.68:5000/start_session"
+            url = "http://127.0.0.1:5000/start_session"
 
             data = {
                 "brokers": brokers, 
@@ -368,22 +361,40 @@ class DefineKafkaCluster(CTkToplevel):
                 # "token": f"asdf"
             }
             
-            # headers = {"Authorization": f"Bearer {self.access_token}"}
+            headers = {"Authorization": f"Bearer {self.access_token}"}
             
-            print(data)
+            print(f'data: {data}')
+            print(f'headers: {headers}')
             
             try:
                 response = requests.post(
                     url=url,
                     json=data,
-                    # headers=headers,
+                    headers=headers,
                     timeout=3
                 )
+                
+                print(response.json())
             except Exception as e:
                 print(e)
             
-            t0 = Thread(target=rcp_kp.run_producer, daemon=True)
-            t0.start()
+            
+            if response.status_code == 200:
+                skc = StartKafkaCluster(
+                    connection=connection,
+                    topic_name=self.topic_name,
+                    current_ip=self.current_ip,
+                    is_zookeeper=self.is_zookeeper.get(),
+                    num_brokers=self.num_brokers
+                )
+                
+                skc.start_kafka_cluster(df_ips=df_ips)
+            else:
+                print("Invalid token or something.")
+
+
+            # t0 = Thread(target=rcp_kp.run_producer, daemon=True)
+            # t0.start()
             
 
             self.session = "end"

@@ -7,7 +7,7 @@ from PIL import ImageTk, Image
 
 import requests
 
-from define_kafka_cluster import DefineKafkaCluster
+from racecraft_pro_client import RaceCraftProClient
 
 from utils import PasswordHash
 
@@ -64,13 +64,13 @@ class App(ctk.CTk):
 
 
     def open_window(self):
-        # This button will "hide" the login window. The function calls the class DefineKafkaCluster
+        # This button will "hide" the login window. The function calls the class RaceCraftProClient
         # which is a new window which allows the user to configure the Kafka cluster.
         self.withdraw() 
         self.topic_name = self.ent_name.get()
         self.password = self.ent_password.get()
         
-        top = DefineKafkaCluster(self, topic_name=self.topic_name, access_token=self.token, user_id=self.user_id)
+        top = RaceCraftProClient(self, topic_name=self.topic_name, access_token=self.token, user_id=self.user_id)
         top.protocol("WM_DELETE_WINDOW", self.on_top_window_close)
         top.deiconify() 
 
@@ -90,13 +90,11 @@ class App(ctk.CTk):
         
         pwh = PasswordHash()
         password = pwh.password_hash(self.password)
-        
-        self.token   = None
-        self.user_id = None
+
         
         
         r = requests.post(
-            url="http://127.0.0.1:5000/login_kafka_client", 
+            url="http://127.0.0.1:5000/login_desktop_client", 
             json={
                 "username": self.topic_name,
                 "password": password
@@ -104,8 +102,12 @@ class App(ctk.CTk):
             timeout=3
         )
         
-            
+
+        
+        
         if r.json()['code'] == 200:
+            self.token   = r.json()["access_token"]
+            self.user_id = None
             self.open_window()
             
         else:
