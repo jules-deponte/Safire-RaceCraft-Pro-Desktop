@@ -375,12 +375,9 @@ class DefineKafkaCluster(CTkToplevel):
                 )
                 
                 print(response.json())
-            except Exception as e:
-                print(e)
-            
-            
-            if response.status_code == 200:
-                skc = StartKafkaCluster(
+                
+                if response.status_code == 200:
+                    skc = StartKafkaCluster(
                     connection=connection,
                     topic_name=self.topic_name,
                     current_ip=self.current_ip,
@@ -389,8 +386,13 @@ class DefineKafkaCluster(CTkToplevel):
                 )
                 
                 skc.start_kafka_cluster(df_ips=df_ips)
-            else:
+
+            except Exception as e:
                 print("Invalid token or something.")
+                print(e)
+            
+            
+
 
 
             # t0 = Thread(target=rcp_kp.run_producer, daemon=True)

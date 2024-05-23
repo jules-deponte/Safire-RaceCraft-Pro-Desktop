@@ -7,8 +7,6 @@ from PIL import ImageTk, Image
 
 import requests
 
-from racecraft_pro_client import RaceCraftProClient
-
 from utils import PasswordHash
 
 
@@ -18,7 +16,7 @@ from utils import PasswordHash
 # This file creates the login window for the Safire RaceCraft Pro desktop client.
 # It creates the initial login screen, and runs the mainloop for the client.
 # After the user has logged in, the next window will open, which will allow the 
-# user to configure the Kafka cluster.
+# user to configure the Kafka cluster, or start the Producer.
 
 # Create the GUI with this module
 ctk.set_appearance_mode("dark")
@@ -27,7 +25,7 @@ ctk.set_default_color_theme("safire")
 
 # ========================   LOGIN   ===================================
 class App(ctk.CTk):
-    def __init__(self):
+    def __init__(self, app_to_run):
         # Initialize the app, and set the window geometry.
         super().__init__()
         self.geometry("440x320")
@@ -36,6 +34,8 @@ class App(ctk.CTk):
 
         # Call a separate function to create the widgets on the screen.
         self.widgets_login()
+        
+        self.app_to_run = app_to_run
 
     def widgets_login(self):
         fmr_main = CTkFrame(master=self, width=400, height=280)
@@ -64,13 +64,13 @@ class App(ctk.CTk):
 
 
     def open_window(self):
-        # This button will "hide" the login window. The function calls the class RaceCraftProClient
+        # This button will "hide" the login window. The function calls the class DefineKafkaCluster
         # which is a new window which allows the user to configure the Kafka cluster.
         self.withdraw() 
         self.topic_name = self.ent_name.get()
         self.password = self.ent_password.get()
         
-        top = RaceCraftProClient(self, topic_name=self.topic_name, access_token=self.token, user_id=self.user_id)
+        top = self.app_to_run(self, topic_name=self.topic_name, access_token=self.token, user_id=self.user_id)
         top.protocol("WM_DELETE_WINDOW", self.on_top_window_close)
         top.deiconify() 
 
@@ -90,7 +90,9 @@ class App(ctk.CTk):
         
         pwh = PasswordHash()
         password = pwh.password_hash(self.password)
-
+        
+        self.token   = None
+        self.user_id = None
         
         
         r = requests.post(
@@ -102,9 +104,7 @@ class App(ctk.CTk):
             timeout=3
         )
         
-
-        
-        
+            
         if r.json()['code'] == 200:
             self.token   = r.json()["access_token"]
             self.user_id = None
@@ -115,6 +115,6 @@ class App(ctk.CTk):
             
 
 
-if __name__ == "__main__":
-    main = App()
-    main.mainloop()
+# if __name__ == "__main__":
+#     main = App()
+#     main.mainloop()
