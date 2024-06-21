@@ -352,6 +352,7 @@ class DefineKafkaCluster(CTkToplevel):
             # rcp_kp = RcpKafkaProducer(brokers=brokers, topic_name=self.topic_name)
 
 
+
             url = "http://127.0.0.1:5000/start_session"
 
             data = {
@@ -382,7 +383,8 @@ class DefineKafkaCluster(CTkToplevel):
                     topic_name=self.topic_name,
                     current_ip=self.current_ip,
                     is_zookeeper=self.is_zookeeper.get(),
-                    num_brokers=self.num_brokers
+                    num_brokers=self.num_brokers,
+                    server_or_client='server'
                 )
                 
                 skc.start_kafka_cluster(df_ips=df_ips)
